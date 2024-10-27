@@ -1,0 +1,28 @@
+.feedback-list {
+  /* background-color: rebeccapurple; */
+  overflow: auto;
+  position: relative;
+  top: 4rem;
+  height: calc(100vh - 4rem);
+}
+
+.filter-bar {
+  width: calc(100%);
+}
+
+/* profile card */
+.pill {
+  @apply  px-4 py-1 border-orange-300 border-2 rounded-full text-orange-300 hover:border-orange-500 hover:text-orange-500 font-semibold;
+}
+
+.pill-selected {
+  @apply bg-orange-500 text-white border-orange-500 hover:text-white;
+}
+
+/* .text-hover {
+  @apply cursor-pointer border-2 rounded-md hover:border-gray-300 px-1 border-transparent;
+}
+
+.text-selected {
+  @apply border-gray-500 hover:border-gray-500;
+} */
