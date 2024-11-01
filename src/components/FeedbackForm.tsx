@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Feedback } from '../App';
+import React, { useState } from "react";
+import { Feedback } from "../App";
 
 interface FeedbackFormProps {
   addFeedback: (feedback: Feedback) => void;
@@ -8,27 +8,30 @@ interface FeedbackFormProps {
 const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
   // Predefined lists for teachers and courses (with IDs)
   const teacherList = [
-    { id: '1', name: 'Dr. John Doe' },
-    { id: '2', name: 'Prof. Jane Smith' },
-    { id: '3', name: 'Ms. Emily Johnson' },
+    { id: "1", name: "Dr. John Doe" },
+    { id: "2", name: "Prof. Jane Smith" },
+    { id: "3", name: "Ms. Emily Johnson" },
   ];
 
   const courseList = [
-    { id: 'C1', name: 'Mathematics 101' },
-    { id: 'C2', name: 'Physics 202' },
-    { id: 'C3', name: 'Computer Science 303' },
+    { id: "C1", name: "Mathematics 101" },
+    { id: "C2", name: "Physics 202" },
+    { id: "C3", name: "Computer Science 303" },
   ];
 
   // State for feedback form
   const [feedback, setFeedback] = useState<Feedback>({
-    teacherId: '',
-    teacherName: '',
-    courseId: '',
-    courseName: '',
-    rating: 0,
-    comment: '',
-    createdDate: new Date().toISOString(),
-    updatedDate: null, // No update
+    teacherId: "",
+    teacherName: "",
+    courseId: "",
+    courseName: "",
+    review: {
+      comment: "",
+      rating: 0,
+      user: "john",
+      createdDate: new Date().toISOString(),
+      updatedDate: null, // No update
+    },
   });
 
   // State for modal visibility
@@ -38,7 +41,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
   const [feedbackList, setFeedbackList] = useState<Feedback[]>([]);
 
   const handleTeacherChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedTeacher = teacherList.find((teacher) => teacher.id === e.target.value);
+    const selectedTeacher = teacherList.find(
+      (teacher) => teacher.id === e.target.value
+    );
     if (selectedTeacher) {
       setFeedback({
         ...feedback,
@@ -49,7 +54,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
   };
 
   const handleCourseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedCourse = courseList.find((course) => course.id === e.target.value);
+    const selectedCourse = courseList.find(
+      (course) => course.id === e.target.value
+    );
     if (selectedCourse) {
       setFeedback({
         ...feedback,
@@ -59,7 +66,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFeedback({
       ...feedback,
@@ -80,14 +89,17 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
 
     // Reset the feedback form
     setFeedback({
-      teacherId: '',
-      teacherName: '',
-      courseId: '',
-      courseName: '',
-      rating: 0,
-      comment: '',
-      createdDate: new Date().toISOString(),
-      updatedDate: null, // No update
+      teacherId: "",
+      teacherName: "",
+      courseId: "",
+      courseName: "",
+      review: {
+        comment: "",
+        rating: 0,
+        user: "john",
+        createdDate: new Date().toISOString(),
+        updatedDate: null, // No update
+      },
     });
   };
 
@@ -96,12 +108,16 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
   };
 
   return (
-    <div className='absolute top-16 w-full'>
-      <form onSubmit={handleSubmit} className="max-w-md bg-white rounded-md mt-4 mx-auto p-4">
-
+    <div className="absolute top-16 w-full">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-md bg-white rounded-md mt-4 mx-auto p-4"
+      >
         {/* Teacher Name Dropdown */}
         <div className="mb-4">
-          <label className="block mb-1" htmlFor="teacherName">Teacher Name</label>
+          <label className="block mb-1" htmlFor="teacherName">
+            Teacher Name
+          </label>
           <select
             name="teacherId"
             value={feedback.teacherId}
@@ -109,7 +125,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
             required
             className="border p-2 w-full rounded-md"
           >
-            <option value="" disabled>Select a teacher</option>
+            <option value="" disabled>
+              Select a teacher
+            </option>
             {teacherList.map((teacher) => (
               <option key={teacher.id} value={teacher.id}>
                 {teacher.name}
@@ -120,7 +138,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
 
         {/* Course List Dropdown */}
         <div className="mb-4">
-          <label className="block mb-1" htmlFor="courseId">Course Name</label>
+          <label className="block mb-1" htmlFor="courseId">
+            Course Name
+          </label>
           <select
             name="courseId"
             value={feedback.courseId}
@@ -128,7 +148,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
             required
             className="border p-2 w-full rounded-md"
           >
-            <option value="" disabled>Select a course</option>
+            <option value="" disabled>
+              Select a course
+            </option>
             {courseList.map((course) => (
               <option key={course.id} value={course.id}>
                 {course.name}
@@ -139,13 +161,15 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
 
         {/* Rating */}
         <div className="mb-4">
-          <label className="block mb-1" htmlFor="rating">Rating (1-5):</label>
+          <label className="block mb-1" htmlFor="rating">
+            Rating (1-5):
+          </label>
           <input
             type="number"
             name="rating"
             min="1"
             max="5"
-            value={feedback.rating}
+            value={feedback.review.comment}
             onChange={handleInputChange}
             required
             className="border p-2 w-full"
@@ -154,10 +178,12 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
 
         {/* Comment */}
         <div className="mb-4">
-          <label className="block mb-1" htmlFor="comment">Comment</label>
+          <label className="block mb-1" htmlFor="comment">
+            Comment
+          </label>
           <textarea
             name="comment"
-            value={feedback.comment}
+            value={feedback.review.comment}
             onChange={handleInputChange}
             required
             className="border p-2 w-full"
@@ -165,7 +191,10 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
         </div>
 
         {/* Submit Button */}
-        <button type="submit" className="bg-orange-600 text-white p-2 rounded-md">
+        <button
+          type="submit"
+          className="bg-orange-600 text-white p-2 rounded-md"
+        >
           Submit Feedback
         </button>
       </form>
@@ -175,7 +204,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ addFeedback }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-md shadow-lg max-w-sm mx-auto">
             <h2 className="text-xl font-bold mb-4">Confirm Submission</h2>
-            <p className="mb-4">Are you sure you want to submit this feedback?</p>
+            <p className="mb-4">
+              Are you sure you want to submit this feedback?
+            </p>
             <button
               onClick={handleConfirm}
               className="bg-orange-600 text-white p-2 rounded-md mr-2"

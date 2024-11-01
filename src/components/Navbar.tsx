@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
                 isActive ? 'text-orange-600' : 'text-gray-700 hover:text-orange-600'
               }
             >
-              Feedback View
+              Feeds
             </NavLink>
 
             <NavLink

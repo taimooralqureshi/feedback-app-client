@@ -1,6 +1,11 @@
 import React, { useState } from "react";
-import { FcNumericalSorting12, FcNumericalSorting21 } from "react-icons/fc";
-import { FaArrowDownLong, FaArrowUpLong } from "react-icons/fa6";
+import ThreeStateSort, {
+  SORT_STATE,
+  SortStateType,
+} from "./shared/ThreeStateSort";
+import RatingCube from "./shared/RatingCard";
+import ReviewCard from "./shared/ReviewCard";
+import { IReview } from "../App";
 
 interface TeacherProfileProps {
   teacherName: string;
@@ -9,36 +14,29 @@ interface TeacherProfileProps {
     id: string;
     name: string;
     ratingDistribution: { [key: string]: number };
-    reviews: { rating: number; feedback: string; user: string; date: string }[];
+    reviews: IReview[];
   }[];
 }
 
-const All = "all";
+const ALL = "all";
 
 const TeacherProfile: React.FC<TeacherProfileProps> = ({
   teacherName,
   teacherBio,
   courses,
 }) => {
-  const [selectedCourse, setSelectedCourse] = useState<string>(All);
-  const [selectedRating, setSelectedRating] = useState<number | string>(All);
-  const [sortBy, setSortBy] = useState<"date" | "rating">("date");
-  const [ratingOrder, setRatingOrder] = useState<"asc" | "desc">("desc");
-  const [dateOrder, setDateOrder] = useState<"asc" | "desc">("desc");
+  const [selectedCourse, setSelectedCourse] = useState<string>(ALL);
+  const [selectedRating, setSelectedRating] = useState<number | string>(ALL);
+  const [ratingOrder, setRatingOrder] = useState<SortStateType>(
+    SORT_STATE.NONE
+  );
+  const [dateOrder, setDateOrder] = useState<SortStateType>(SORT_STATE.NONE);
 
   const onCourseClick = (courseId: string) => setSelectedCourse(courseId);
   const onStarClick = (star: number | string) => setSelectedRating(star);
 
-  const onToggleSort = () => {
-    if(sortBy === "rating") {
-      setRatingOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setDateOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    }
-  };
-
   const selectedCourseData =
-    selectedCourse === All
+    selectedCourse === ALL
       ? null
       : courses.find((course) => course.id === selectedCourse);
 
@@ -55,166 +53,147 @@ const TeacherProfile: React.FC<TeacherProfileProps> = ({
       );
 
   const filteredFeedback =
-    selectedRating === All
+    selectedRating === ALL
       ? `Total reviews: ${Object.values(ratingDistribution).reduce(
           (sum, count) => sum + count,
           0
         )}`
-      : `${selectedRating}-star: ${ratingDistribution[selectedRating as number]} reviews`;
+      : `${selectedRating}-star: ${
+          ratingDistribution[selectedRating as number]
+        } reviews`;
 
   const allReviews =
-    selectedCourse === All
+    selectedCourse === ALL
       ? courses.flatMap((course) => course.reviews)
       : selectedCourseData?.reviews || [];
 
   // Sorting reviews based on selected criteria and order
   const sortedReviews = [...allReviews].sort((a, b) => {
-    if (sortBy === "date") {
+    const a_date = a.updatedDate ? a.updatedDate : a.createdDate;
+    const b_date = b.updatedDate ? b.updatedDate : b.createdDate;
+    if (dateOrder) {
+      if (dateOrder === "none") return 0;
       return dateOrder === "desc"
-        ? new Date(b.date).getTime() - new Date(a.date).getTime()
-        : new Date(a.date).getTime() - new Date(b.date).getTime();
+        ? new Date(b_date).getTime() - new Date(a_date).getTime()
+        : new Date(a_date).getTime() - new Date(b_date).getTime();
     } else {
       return ratingOrder === "desc" ? b.rating - a.rating : a.rating - b.rating;
     }
   });
 
   const filteredReviews =
-    selectedRating === All
+    selectedRating === ALL
       ? sortedReviews
       : sortedReviews.filter((review) => review.rating === selectedRating);
 
-  const calculateAverageRating = () => {
-    const totalRatings = courses.reduce((acc, course) => {
-      const totalCourseRatings = Object.keys(course.ratingDistribution).reduce(
-        (sum: number, star: string) => sum + course.ratingDistribution[star],
-        0
-      );
-      const numberOfRatings = Object.values(course.ratingDistribution).reduce(
-        (sum, count) => sum + count,
-        0
-      );
-      return acc + (numberOfRatings > 0 ? totalCourseRatings / numberOfRatings : 0);
-    }, 0);
-
-    const totalCourses = courses.length;
-
-    return totalCourses > 0 ? totalRatings / totalCourses : 0;
-  };
-
-  const averageRating = calculateAverageRating();
-
   return (
-    <div className="max-w-lg w-full md:min-w-[800px] mx-auto mt-4 bg-white shadow-lg rounded-lg overflow-hidden">
-      <div className="divide-y">
-        <div className="p-4 header">
-          <div className="font-bold text-2xl text-orange-600">{teacherName}</div>
-          {teacherBio && <p className="text-gray-700 text-base">{teacherBio}</p>}
-          <div className="p-4 flex items-center justify-between">
-            <div className="border-2 border-orange-500 p-2 rounded-lg flex flex-col justify-center items-center w-[80px] h-[80px]">
-              <span className="text-xs text-center font-semibold text-gray-800">Rating</span>
-              <span className="text-yellow-500 text-center font-bold">{averageRating.toFixed(1)} / 5</span>
+    <div className="p-4 overflow-auto w-full">
+      <div className="max-w-lg w-full md:min-w-[800px] mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="divide-y">
+          <div className="p-4 header flex justify-between">
+            <div>
+              <div className="font-bold text-2xl text-orange-600">
+                {teacherName}
+              </div>
+              {teacherBio && (
+                <p className="text-gray-700 text-base">{teacherBio}</p>
+              )}
             </div>
+            <RatingCube rating={1} />
           </div>
-        </div>
 
-        <div className="p-4">
-          <span className="text-xs font-semibold text-gray-800">Filter by Course</span>
-          <div className="flex justify-between">
-            <div className="list-disc list-inside flex flex-wrap items-start gap-1 mt-2">
-              <div
-                className={`pill cursor-pointer ${selectedCourse === All ? "pill-selected" : ""}`}
-                onClick={() => onCourseClick(All)}
-              >
-                <span className="text-sm">All Courses</span>
-              </div>
-              {courses.map((course) => (
+          <div className="p-4">
+            <span className="text-xs font-semibold text-gray-800">
+              Filter by Course
+            </span>
+            <div className="flex justify-between">
+              <div className="list-disc list-inside flex flex-wrap items-start gap-1 mt-2">
                 <div
-                  key={course.id}
-                  className={`pill cursor-pointer ${course.id === selectedCourse ? "pill-selected" : ""}`}
-                  onClick={() => onCourseClick(course.id)}
+                  className={`pill cursor-pointer text-sm ${
+                    selectedCourse === ALL ? "pill-selected" : ""
+                  }`}
+                  onClick={() => onCourseClick(ALL)}
                 >
-                  <span className="text-sm">{course.name}</span>
+                  <span className="text-sm">ALL Courses</span>
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="">
-            <span className="text-xs font-semibold text-gray-800">Filter by Rating</span>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <div
-                className={`cursor-pointer text-sm pill ${selectedRating === All ? "pill-selected" : ""}`}
-                onClick={() => onStarClick(All)}
-              >
-                <span className="text-center flex flex-col">
-                  <span>All &#9733;</span>
-                  <span>({Object.values(ratingDistribution).reduce((sum, count) => sum + count, 0)} reviews)</span>
-                </span>
+                {courses.map((course) => (
+                  <div
+                    key={course.id}
+                    className={`pill cursor-pointer text-sm ${
+                      course.id === selectedCourse ? "pill-selected" : ""
+                    }`}
+                    onClick={() => onCourseClick(course.id)}
+                  >
+                    <span className="text-sm">{course.name}</span>
+                  </div>
+                ))}
               </div>
-              {[5, 4, 3, 2, 1].map((star) => (
+            </div>
+            <div className="mt-2">
+              <span className="text-xs font-semibold text-gray-800">
+                Filter by Rating
+              </span>
+              <div className="flex flex-wrap gap-2 mt-2">
                 <div
-                  key={star}
-                  className={`cursor-pointer text-sm pill ${selectedRating === star ? "pill-selected" : ""}`}
-                  onClick={() => onStarClick(star)}
+                  className={`cursor-pointer text-sm pill ${
+                    selectedRating === ALL ? "pill-selected" : ""
+                  }`}
+                  onClick={() => onStarClick(ALL)}
                 >
-                  <span className="text-center flex flex-col">
-                    <span>{star} &#9733;</span>
-                    <span>({ratingDistribution[star]} reviews)</span>
+                  <span className="text-center flex gap-1">
+                    <span>ALL &#9733;</span>
+                    <span>
+                      (
+                      {Object.values(ratingDistribution).reduce(
+                        (sum, count) => sum + count,
+                        0
+                      )}{" "}
+                      reviews)
+                    </span>
                   </span>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4">
-          <div className="flex justify-between items-center">
-            <div className="flex flex-col">
-              <h3 className="text-lg font-semibold text-gray-800">Feedback</h3>
-              <p className="text-gray-700">{filteredFeedback}</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                className={`pill ${sortBy === "date" ? "pill-selected" : ""} flex items-center gap-1`}
-                onClick={() => {
-                  setSortBy("date");
-                  onToggleSort();
-                }}
-              >
-                {dateOrder === "desc" ? <FaArrowDownLong />: <FaArrowUpLong />
-                }
-                Date
-              </button>
-              <button
-                className={`pill ${sortBy === "rating" ? "pill-selected" : ""} flex items-center gap-1`}
-                onClick={() => {
-                  setSortBy("rating");
-                  onToggleSort();
-                }}
-              >
-                {ratingOrder === "desc" ? <FaArrowDownLong />: <FaArrowUpLong />}
-                Rating
-              </button>
-            </div>
-          </div>
-
-          {filteredReviews.length === 0 ? (
-            <div className="text-gray-500 text-center py-4">No feedback available</div>
-          ) : (
-            <div className="space-y-4 mt-4">
-              {filteredReviews.map((review, index) => (
-                <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-gray-800">{review.user}</span>
-                      <span className="text-sm text-yellow-500">{review.rating} &#9733;</span>
-                    </div>
-                    <span className="text-xs text-gray-500">{new Date(review.date).toLocaleDateString()}</span>
+                {[5, 4, 3, 2, 1].map((star) => (
+                  <div
+                    key={star}
+                    className={`cursor-pointer text-sm pill ${
+                      selectedRating === star ? "pill-selected" : ""
+                    }`}
+                    onClick={() => onStarClick(star)}
+                  >
+                    <span className="text-center flex gap-1">
+                      <span>{star} &#9733;</span>
+                      <span>({ratingDistribution[star]} reviews)</span>
+                    </span>
                   </div>
-                  <p className="text-gray-700 mt-2">{review.feedback}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          )}
+          </div>
+
+          <div className="p-4">
+            <div className="flex justify-between items-center">
+              <div className="flex flex-col">
+                <h3 className="text-lg font-semibold text-gray-800">Reviews</h3>
+                <p className="text-gray-700">{filteredFeedback}</p>
+              </div>
+              <div className="flex gap-2">
+                <ThreeStateSort onSortChange={setDateOrder} label="Date" />
+                <ThreeStateSort onSortChange={setRatingOrder} label="Rating" />
+              </div>
+            </div>
+
+            {filteredReviews.length === 0 ? (
+              <div className="text-gray-500 text-center py-4">
+                No reviews available
+              </div>
+            ) : (
+              <div className="space-y-4 mt-4">
+                {filteredReviews.map((review, index) => (
+                  <ReviewCard key={index} index={index} review={review} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
